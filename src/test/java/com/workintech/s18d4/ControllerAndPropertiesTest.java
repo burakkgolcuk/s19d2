@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.stubbing.OngoingStubbing;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -61,12 +62,12 @@ class ControllerAndPropertiesTest {
     @BeforeEach
     void setUp() {
         sampleCustomerForAccountControllerTest = new Customer();
-        sampleCustomerForAccountControllerTest.setId(1L);
+        sampleCustomerForAccountControllerTest.setId(1);
         sampleCustomerForAccountControllerTest.setEmail("customer@example.com");
         sampleCustomerForAccountControllerTest.setSalary(5000.00);
 
         sampleAccountForAccountControllerTest = new Account();
-        sampleAccountForAccountControllerTest.setId(1L);
+        sampleAccountForAccountControllerTest.setId(1);
         sampleAccountForAccountControllerTest.setAccountName("Savings Account");
         sampleAccountForAccountControllerTest.setMoneyAmount(1000.00);
         sampleAccountForAccountControllerTest.setCustomer(sampleCustomerForAccountControllerTest);
@@ -77,7 +78,7 @@ class ControllerAndPropertiesTest {
         sampleCustomerForAccountControllerTest.setAccounts(modifiableAccountsList);
 
         sampleCustomerForCustomerControllerTest = new Customer();
-        sampleCustomerForCustomerControllerTest.setId(1L);
+        sampleCustomerForCustomerControllerTest.setId(1);
         sampleCustomerForCustomerControllerTest.setEmail("customer@example.com");
         sampleCustomerForCustomerControllerTest.setSalary(5000.00);
     }
@@ -109,7 +110,7 @@ class ControllerAndPropertiesTest {
     @Test
     @DisplayName("AccountController::findAll")
     void testFindAllAccount() throws Exception {
-        when(accountService.findAll()).thenReturn(List.of(sampleAccountForAccountControllerTest));
+        OngoingStubbing<List<Account>> listOngoingStubbing = when(accountService.findAll()).thenReturn(List.of(sampleAccountForAccountControllerTest));
 
         mockMvc.perform(get("/account"))
                 .andExpect(status().isOk())
@@ -124,7 +125,7 @@ class ControllerAndPropertiesTest {
     @Test
     @DisplayName("AccountController::find")
     void testFindAccount() throws Exception {
-        when(accountService.find(sampleAccountForAccountControllerTest.getId())).thenReturn(sampleAccountForAccountControllerTest);
+        when(accountService.find((long) sampleAccountForAccountControllerTest.getId())).thenReturn(sampleAccountForAccountControllerTest);
 
         mockMvc.perform(get("/account/{id}", sampleAccountForAccountControllerTest.getId()))
                 .andExpect(status().isOk())
@@ -132,13 +133,13 @@ class ControllerAndPropertiesTest {
                 .andExpect(jsonPath("$.id", is((int) sampleAccountForAccountControllerTest.getId())))
                 .andExpect(jsonPath("$.accountName", is(sampleAccountForAccountControllerTest.getAccountName())));
 
-        verify(accountService).find(sampleAccountForAccountControllerTest.getId());
+        verify(accountService).find((long) sampleAccountForAccountControllerTest.getId());
     }
 
     @Test
     @DisplayName("AccountController::save")
     void testSaveAccount() throws Exception {
-        when(customerService.find(sampleCustomerForAccountControllerTest.getId())).thenReturn(sampleCustomerForAccountControllerTest);
+        when(customerService.find((long) sampleCustomerForAccountControllerTest.getId())).thenReturn(sampleCustomerForAccountControllerTest);
         when(accountService.save(any())).thenReturn(sampleAccountForAccountControllerTest);
 
         mockMvc.perform(post("/account/{customerId}", sampleCustomerForAccountControllerTest.getId())
@@ -148,7 +149,7 @@ class ControllerAndPropertiesTest {
                 .andExpect(jsonPath("$.id", is((int) sampleAccountForAccountControllerTest.getId())))
                 .andExpect(jsonPath("$.accountName", is(sampleAccountForAccountControllerTest.getAccountName())));
 
-        verify(customerService).find(sampleCustomerForAccountControllerTest.getId());
+        verify(customerService).find((long) sampleCustomerForAccountControllerTest.getId());
         verify(accountService).save(any());
     }
 
@@ -168,7 +169,7 @@ class ControllerAndPropertiesTest {
         sampleCustomerForAccountControllerTest.setAccounts(accounts);
 
         when(customerService.find(customerId)).thenReturn(sampleCustomerForAccountControllerTest);
-        when(accountService.find(sampleAccountForAccountControllerTest.getId())).thenReturn(sampleAccountForAccountControllerTest);
+        when(accountService.find((long) sampleAccountForAccountControllerTest.getId())).thenReturn(sampleAccountForAccountControllerTest);
         when(accountService.save(any())).thenReturn(updatedAccount);
 
         mockMvc.perform(put("/account/{customerId}", customerId)
@@ -187,8 +188,8 @@ class ControllerAndPropertiesTest {
     @Test
     @DisplayName("AccountController::remove")
     void testRemoveAccount() throws Exception {
-        when(accountService.find(sampleAccountForAccountControllerTest.getId())).thenReturn(sampleAccountForAccountControllerTest);
-        when(accountService.delete(sampleAccountForAccountControllerTest.getId())).thenReturn(sampleAccountForAccountControllerTest);
+        when(accountService.find((long) sampleAccountForAccountControllerTest.getId())).thenReturn(sampleAccountForAccountControllerTest);
+        when(accountService.delete((long) sampleAccountForAccountControllerTest.getId())).thenReturn(sampleAccountForAccountControllerTest);
 
         mockMvc.perform(delete("/account/{id}", sampleAccountForAccountControllerTest.getId()))
                 .andExpect(status().isOk())
@@ -196,8 +197,8 @@ class ControllerAndPropertiesTest {
                 .andExpect(jsonPath("$.accountName", is(sampleAccountForAccountControllerTest.getAccountName())))
                 .andExpect(jsonPath("$.moneyAmount", is(sampleAccountForAccountControllerTest.getMoneyAmount())));
 
-        verify(accountService).find(sampleAccountForAccountControllerTest.getId());
-        verify(accountService).delete(sampleAccountForAccountControllerTest.getId());
+        verify(accountService).find((long) sampleAccountForAccountControllerTest.getId());
+        verify(accountService).delete((long) sampleAccountForAccountControllerTest.getId());
     }
 
     @Test
